@@ -82,6 +82,8 @@ class _MovieSliderState extends State<MovieSlider> {
                 itemBuilder: (context, index) {
                   final Movie movie = widget.movies[index];
 
+                  movie.heroId = 'slider-${movie.id}';
+
                   return Container(
                     width: 130,
                     height: 190,
@@ -97,19 +99,23 @@ class _MovieSliderState extends State<MovieSlider> {
                             'details',
                             arguments: movie,
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: FadeInImage(
-                              imageErrorBuilder: (context, error, stackTrace) {
-                                debugPrint('OHHH ERROR: $error');
-                                return Image.asset('assets/no-image.jpg');
-                              },
-                              placeholder:
-                                  const AssetImage('assets/no-image.jpg'),
-                              image: NetworkImage(movie.posterUrl),
-                              width: 130,
-                              height: 190,
-                              fit: BoxFit.cover,
+                          child: Hero(
+                            tag: movie.heroId!,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: FadeInImage(
+                                imageErrorBuilder:
+                                    (context, error, stackTrace) {
+                                  debugPrint('OHHH ERROR: $error');
+                                  return Image.asset('assets/no-image.jpg');
+                                },
+                                placeholder:
+                                    const AssetImage('assets/no-image.jpg'),
+                                image: NetworkImage(movie.posterUrl),
+                                width: 130,
+                                height: 190,
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
                         ),
