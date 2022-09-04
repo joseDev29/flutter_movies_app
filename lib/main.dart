@@ -8,6 +8,10 @@ import 'package:provider/provider.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: '.env');
+  FlutterError.onError = (details) {
+    debugPrint('OPPPS: ${details.toString()}');
+    //FlutterError.presentError(details);
+  };
   runApp(const AppState());
 }
 
@@ -41,9 +45,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Movies App',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.light().copyWith(
+      theme: ThemeData.dark().copyWith(
         appBarTheme: AppBarTheme(
-          color: Colors.cyan.shade600,
+          color: Colors.indigo.shade700,
           elevation: 0,
         ),
       ),

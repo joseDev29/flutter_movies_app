@@ -1,38 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_movies_app/models/models.dart';
+import 'package:flutter_movies_app/providers/movies_provider.dart';
+import 'package:provider/provider.dart';
 
 class DetailsView extends StatelessWidget {
   const DetailsView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final String movie = ModalRoute.of(context)!.settings.arguments.toString();
+    final movie = ModalRoute.of(context)!.settings.arguments as Movie;
 
     return Scaffold(
-        body: CustomScrollView(
-      //Los slivers son widgets que
-      //tienen determinado comportamiento
-      //al hacer scroll
-      slivers: [
-        const _CustomAppBar(),
-        SliverList(
-          delegate: SliverChildListDelegate(
-            [
-              _PosterAndTitle(),
-              _Overview(),
-              _CastingCards(),
-            ],
-          ),
-        )
-      ],
-    ));
+      body: CustomScrollView(
+        //Los slivers son widgets que
+        //tienen determinado comportamiento
+        //al hacer scroll
+        slivers: [
+          _CustomAppBar(movie: movie),
+          SliverList(
+            delegate: SliverChildListDelegate(
+              [
+                _PosterAndTitle(movie: movie),
+                _Overview(movie: movie),
+                _CastingCards(movieId: movie.id),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
   }
 }
 
 class _CustomAppBar extends StatelessWidget {
-  const _CustomAppBar({Key? key}) : super(key: key);
+  final Movie movie;
+
+  const _CustomAppBar({
+    Key? key,
+    required this.movie,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final Size size = MediaQuery.of(context).size;
+
     return SliverAppBar(
       backgroundColor: Colors.cyan.shade600,
       expandedHeight: 300,
@@ -43,19 +54,23 @@ class _CustomAppBar extends StatelessWidget {
         centerTitle: true,
         title: Container(
           padding: const EdgeInsets.only(bottom: 16),
-          color: Colors.black12,
+          color: Colors.black38,
           alignment: Alignment.bottomCenter,
           width: double.infinity,
-          child: const Text(
-            'Movie',
-            style: TextStyle(
-              fontSize: 16,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: size.width * 0.5),
+            child: Text(
+              movie.title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+              ),
             ),
           ),
         ),
-        background: const FadeInImage(
-          placeholder: AssetImage('assets/loading-image.gif'),
-          image: NetworkImage('https://via.placeholder.com/500x300'),
+        background: FadeInImage(
+          placeholder: const AssetImage('assets/loading-image.gif'),
+          image: NetworkImage(movie.backdropUrl),
           fit: BoxFit.cover,
         ),
       ),
@@ -64,7 +79,12 @@ class _CustomAppBar extends StatelessWidget {
 }
 
 class _PosterAndTitle extends StatelessWidget {
-  const _PosterAndTitle({Key? key}) : super(key: key);
+  final Movie movie;
+
+  const _PosterAndTitle({
+    Key? key,
+    required this.movie,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -77,45 +97,47 @@ class _PosterAndTitle extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            child: const FadeInImage(
+            child: FadeInImage(
               height: 150,
-              placeholder: AssetImage('assets/no-image.jpg'),
-              image: NetworkImage('https://via.placeholder.com/200x300'),
+              placeholder: const AssetImage('assets/no-image.jpg'),
+              image: NetworkImage(movie.posterUrl),
             ),
           ),
           const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Movie title',
-                style: textTheme.headline5,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 2,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Original title',
-                style: textTheme.subtitle1,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.star_outline,
-                    size: 15,
-                    color: Colors.grey,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Movie vote agerage',
-                    style: textTheme.caption,
-                  )
-                ],
-              )
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  movie.title,
+                  style: textTheme.headline6,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  movie.originalTitle,
+                  style: textTheme.subtitle1,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.star_outline,
+                      size: 15,
+                      color: Colors.amber.shade400,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${movie.voteAverage}',
+                      style: textTheme.caption,
+                    )
+                  ],
+                )
+              ],
+            ),
           )
         ],
       ),
@@ -124,14 +146,19 @@ class _PosterAndTitle extends StatelessWidget {
 }
 
 class _Overview extends StatelessWidget {
-  const _Overview({Key? key}) : super(key: key);
+  final Movie movie;
+
+  const _Overview({
+    Key? key,
+    required this.movie,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Text(
-        'Id dolore velit fugiat ut commodo sint fugiat excepteur deserunt incididunt cupidatat consequat. In laboris proident consequat incididunt laboris. Lorem sit laborum anim sit excepteur dolore aute cupidatat in commodo amet id. Non laboris minim elit veniam velit eu officia ad cillum tempor ea nulla pariatur nisi. Est ad esse cillum Lorem occaecat proident anim magna sunt ut id.',
+        movie.overview,
         textAlign: TextAlign.justify,
         style: Theme.of(context).textTheme.subtitle1,
       ),
@@ -140,48 +167,71 @@ class _Overview extends StatelessWidget {
 }
 
 class _CastingCards extends StatelessWidget {
-  const _CastingCards({Key? key}) : super(key: key);
+  final int movieId;
+
+  const _CastingCards({
+    Key? key,
+    required this.movieId,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 24),
-      width: double.infinity,
-      height: 180,
-      //color: Colors.red,
-      child: ListView.builder(
-          itemCount: 10,
-          scrollDirection: Axis.horizontal,
-          itemBuilder: ((context, index) {
-            return Container(
-              width: 100,
-              height: 100,
-              //color: Colors.green,
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: const FadeInImage(
-                      height: 140,
-                      width: 100,
-                      fit: BoxFit.cover,
-                      placeholder: AssetImage('assets/no-image.jpg'),
-                      image:
-                          NetworkImage('https://via.placeholder.com/200x240'),
-                    ),
+    final moviesProvider = Provider.of<MoviesProvider>(context, listen: false);
+
+    return FutureBuilder(
+      future: moviesProvider.getMovieCast(movieId),
+      builder: (context, AsyncSnapshot<List<CastPerson>> snapshot) {
+        if (!snapshot.hasData) {
+          return const SizedBox(
+            width: double.infinity,
+            height: 190,
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 24),
+          width: double.infinity,
+          height: 190,
+          //color: Colors.red,
+          child: ListView.builder(
+              itemCount: snapshot.data!.length,
+              scrollDirection: Axis.horizontal,
+              itemBuilder: ((context, index) {
+                final CastPerson castPerson = snapshot.data![index];
+
+                return Container(
+                  width: 100,
+                  height: 100,
+                  //color: Colors.green,
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: FadeInImage(
+                          height: 140,
+                          width: 100,
+                          fit: BoxFit.cover,
+                          placeholder: const AssetImage('assets/no-image.jpg'),
+                          image: NetworkImage(castPerson.profileImgUrl),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        castPerson.name,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Actor name',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            );
-          })),
+                );
+              })),
+        );
+      },
     );
   }
 }

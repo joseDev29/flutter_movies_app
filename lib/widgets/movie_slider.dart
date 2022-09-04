@@ -92,10 +92,18 @@ class _MovieSliderState extends State<MovieSlider> {
                     child: Column(
                       children: [
                         GestureDetector(
-                          onTap: () => Navigator.pushNamed(context, 'details'),
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            'details',
+                            arguments: movie,
+                          ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(16),
                             child: FadeInImage(
+                              imageErrorBuilder: (context, error, stackTrace) {
+                                debugPrint('OHHH ERROR: $error');
+                                return Image.asset('assets/no-image.jpg');
+                              },
                               placeholder:
                                   const AssetImage('assets/no-image.jpg'),
                               image: NetworkImage(movie.posterUrl),

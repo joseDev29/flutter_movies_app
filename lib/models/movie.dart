@@ -34,8 +34,15 @@ class Movie {
   int voteCount;
 
   String get posterUrl {
-    if (posterPath == null) return 'https://i.stack.imgur.com/GNhxO.png';
-    return 'https://image.tmdb.org/t/p/w500$posterPath';
+    if (posterPath != null) return 'https://image.tmdb.org/t/p/w500$posterPath';
+    return 'https://i.stack.imgur.com/GNhxO.png';
+  }
+
+  String get backdropUrl {
+    if (backdropPath != null) {
+      return 'https://image.tmdb.org/t/p/w500$backdropPath';
+    }
+    return posterUrl;
   }
 
   factory Movie.fromJson(String str) => Movie.fromMap(json.decode(str));

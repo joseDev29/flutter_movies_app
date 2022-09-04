@@ -13,8 +13,13 @@ class MoviesProvider extends ChangeNotifier {
   List<Movie> nowPlayingMovies = [];
   List<Movie> popularMovies = [];
 
+  Map<int, List<CastPerson>> moviesCast = {};
+
   int _popularsPage = 0;
+  int _popularsTotalPages = 1;
   bool _popularsLoading = false;
+
+  final List<String> _imageErrors = ['/7uEh9kpQWJgaebgPXVCPf88wsFe.jpg'];
 
   MoviesProvider() {
     getOnDisplayMovies();
@@ -32,27 +37,54 @@ class MoviesProvider extends ChangeNotifier {
     return response.body;
   }
 
+  bool isImageError(imagePath) {
+    final searchResult = _imageErrors.singleWhere(
+      (imgErr) => imgErr == imagePath,
+      orElse: () => 'NOT_FOUND',
+    );
+    return searchResult != 'NOT_FOUND';
+  }
+
   Future<void> getOnDisplayMovies() async {
     final responseBody = await _getJsonMoviesData('/3/movie/now_playing');
     final NowPlayingResponse data = NowPlayingResponse.fromJson(responseBody);
-    nowPlayingMovies.addAll(data.results);
+    nowPlayingMovies = data.results;
     notifyListeners();
   }
 
   Future<void> getPopularMovies() async {
-    if (_popularsLoading) return;
+    if (_popularsLoading || _popularsPage == _popularsTotalPages) return;
 
     _popularsPage++;
     _popularsLoading = true;
+
+    // debugPrint('Page: $_popularsPage');
 
     final responseBody =
         await _getJsonMoviesData('/3/movie/popular', _popularsPage);
     final PopularsResponse data = PopularsResponse.fromJson(responseBody);
 
-    popularMovies.addAll(data.results);
+    final filteredData = data.results.where(
+      (movie) => !isImageError(movie.posterPath),
+    );
 
+    popularMovies = [...popularMovies, ...filteredData];
+
+    _popularsTotalPages = data.totalPages;
     _popularsLoading = false;
 
     notifyListeners();
+  }
+
+  Future<List<CastPerson>> getMovieCast(int movieId) async {
+    if (moviesCast.containsKey(movieId)) return moviesCast[movieId]!;
+
+    final responseBody = await _getJsonMoviesData('/3/movie/$movieId/credits');
+    final MovieCreditsResponse data =
+        MovieCreditsResponse.fromJson(responseBody);
+
+    moviesCast[movieId] = data.cast;
+
+    return moviesCast[movieId]!;
   }
 }
