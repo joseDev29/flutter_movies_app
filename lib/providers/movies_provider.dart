@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_movies_app/utils/debouncer.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -20,6 +23,16 @@ class MoviesProvider extends ChangeNotifier {
   bool _popularsLoading = false;
 
   final List<String> _imageErrors = ['/7uEh9kpQWJgaebgPXVCPf88wsFe.jpg'];
+
+  final debouncer =
+      Debouncer<String>(duration: const Duration(milliseconds: 500));
+
+  final StreamController<List<Movie>> _suggestionsStreamController =
+      StreamController.broadcast();
+
+  Stream<List<Movie>> get suggestionsStream {
+    return _suggestionsStreamController.stream;
+  }
 
   MoviesProvider() {
     getOnDisplayMovies();
@@ -100,5 +113,18 @@ class MoviesProvider extends ChangeNotifier {
         SearchMovieResponse.fromJson(response.body);
 
     return data.results;
+  }
+
+  void getSuggestionsByQuery(String query) {
+    debouncer.onValue = (value) async {
+      debugPrint('onValue: $value');
+      if (value.isEmpty) {
+        return _suggestionsStreamController.add([]);
+      }
+      final results = await searchMovie(value);
+      _suggestionsStreamController.add(results);
+    };
+
+    debouncer.nextValue(query);
   }
 }
